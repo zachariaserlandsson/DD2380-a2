@@ -28,10 +28,14 @@ public class Player {
         int currVal;
         int i = 0;
         for (GameState g : nextStates) {
-          currVal = alphaBetaRec(g, Integer.MIN_VALUE, Integer.MIN_VALUE, PLAYER_X);
+          currVal = alphaBetaRec(g, Integer.MIN_VALUE, Integer.MAX_VALUE, PLAYER_X, 0);
+          // System.err.println("currVal: " + currVal);
           if (currVal > bestVal) {
             bestVal = currVal;
             bestIndex = i;
+            if (currVal == 1) {
+              break;
+            }
           }
           i++;
         }
@@ -46,12 +50,14 @@ public class Player {
         // return nextStates.elementAt(random.nextInt(nextStates.size()));
     }
 
-    public int alphaBetaRec(GameState gameState, int alpha, int beta, int player) {
+    public int alphaBetaRec(GameState gameState, int alpha, int beta, int player, int depth) {
       Vector<GameState> possibleMoves = new Vector<GameState>();
       gameState.findPossibleMoves(possibleMoves);
-      int v = Integer.MIN_VALUE;
+      // System.err.println("possibleMoves.size(): " + possibleMoves.size());
+      int v;
 
-      if (possibleMoves.size() == 0) {
+      if (possibleMoves.size() == 0 || depth > 8) {
+        // System.err.println("No possible moves!");
         if (gameState.isOWin()) {
           v = 1;
         } else if (gameState.isXWin()) {
@@ -59,25 +65,31 @@ public class Player {
         } else {
           v = 0;
         }
+        int printOutput = player == PLAYER_O ? v : -1 * v;
+        // System.err.println("alphaBetaRec output: " + printOutput);
         return player == PLAYER_O ? v : -1 * v;
       }
 
       if (player == PLAYER_X) {
+        v = Integer.MIN_VALUE;
         for (GameState g : possibleMoves) {
-          v = Math.max(v, alphaBetaRec(g, alpha, beta, PLAYER_O));
+          v = Math.max(v, alphaBetaRec(g, alpha, beta, PLAYER_O, depth++));
           alpha = Math.max(alpha, v);
           if (alpha >= beta) {
             break;
           }
         }
-      } else if (player == PLAYER_O) {
+      } else {
+        v = Integer.MAX_VALUE;
         for (GameState g : possibleMoves) {
-          v = Math.min(v, alphaBetaRec(g, alpha, beta, PLAYER_X));
+          v = Math.min(v, alphaBetaRec(g, alpha, beta, PLAYER_X, depth++));
           beta = Math.min(beta, v);
           if (alpha >= beta) {
             break;
           }
         }
-      } return v;
+      }
+      // System.err.println("alphaBetaRec output: " + v);
+      return v;
     }
 }
